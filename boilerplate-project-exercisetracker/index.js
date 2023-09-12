@@ -100,6 +100,24 @@ app.post("/api/users/:_id/exercises", (req, res) => {
 });
 
 // Get exercise logs
+app.get("/api/users/:_id/logs", (req, res) => {
+  console.log(req.params);
+
+  User.findById(req.params._id).then((foundUser) => {
+    console.log({ foundUser });
+
+    Exercise.find({ userId: req.params._id }).then((data) => {
+      console.log(data.length, { data });
+
+      return res.json({
+        username: foundUser.username,
+        _id: foundUser._id,
+        count: data.length,
+        log: data,
+      });
+    });
+  });
+});
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
