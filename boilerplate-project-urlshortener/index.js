@@ -32,8 +32,10 @@ app.get("/", function (req, res) {
 });
 
 app.post("/api/shorturl", (req, res) => {
-  dns.lookup(req.body.url, (err, adress, family) => {
-    if (err) {
+  const validFormat = /http(s?):\/\/www./g;
+
+  dns.lookup(req.body.url.replace(validFormat, ""), (err, adress, family) => {
+    if (err || !validFormat.test(req.body.url)) {
       return res.json({ error: "invalid url" });
     } else {
       return res.json({ originalUrl: req.body.url });
