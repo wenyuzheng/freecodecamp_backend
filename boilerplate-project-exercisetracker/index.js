@@ -33,6 +33,11 @@ app.post("/api/users", (req, res) => {
 });
 
 // Get all user
+app.get("/api/users", (req, res) => {
+  User.find().then((allUsers) => {
+    res.json(allUsers);
+  });
+});
 
 // Post new exercise
 
