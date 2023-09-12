@@ -4,6 +4,7 @@ const cors = require("cors");
 const app = express();
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const dns = require("dns");
 
 // DB set up
 mongoose.connect(process.env.MONGO_URI, {
@@ -20,6 +21,8 @@ const Url = mongoose.model("URL", urlSchema);
 // Basic Configuration
 const port = process.env.PORT || 3000;
 
+app.use(bodyParser.urlencoded({ extended: false }));
+
 app.use(cors());
 
 app.use("/public", express.static(`${process.cwd()}/public`));
@@ -29,14 +32,14 @@ app.get("/", function (req, res) {
 });
 
 app.post("/api/shorturl", (req, res) => {
-  console.log(req);
-  res.json({
-    // original_url:,
-    // short_url:
+  dns.lookup(req.body.url, (err, adress, family) => {
+    if (err) {
+      return res.json({ error: "invalid url" });
+    } else {
+      return res.json({ originalUrl: req.body.url });
+    }
   });
 });
-
-app.get("/api/shorturl/:short_url", (req, res) => {});
 
 app.listen(port, function () {
   console.log(`Listening on port ${port}`);
