@@ -38,7 +38,48 @@ app.post("/api/shorturl", (req, res) => {
     if (err || !validFormat.test(req.body.url)) {
       return res.json({ error: "invalid url" });
     } else {
-      return res.json({ originalUrl: req.body.url });
+      let count = 1;
+      Url.find()
+        .sort({ short: "desc" })
+        .exec()
+        .then((err, data) => {
+          if (err) {
+            console.log(err);
+            return;
+          }
+
+          console.log({ data });
+          if (data) {
+            count = data[0].short + 1;
+          }
+          console.log({ count });
+
+          // Url.findOneAndUpdate(
+          //   { original: req.body.url },
+          //   { original: req.body.url, short: count },
+          //   { new: true, upsert: true }
+          // ).then((savedUrl) => {
+          //   console.log(savedUrl);
+
+          //   res.json({
+          //     original_url: req.body.url,
+          //     short_url: savedUrl.short,
+          //   });
+          // });
+        });
+
+      Url.findOne({ original: req.body.url })
+        .then((found) => {
+          console.log({ found });
+          if (!found) {
+            new Url({ original: req.body.url, short: count }).save();
+          }
+          return res.json({
+            original_url: req.body.url,
+            short_url: found.short,
+          });
+        })
+        .catch((err) => console.log(err));
     }
   });
 });
