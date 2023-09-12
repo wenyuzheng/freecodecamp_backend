@@ -18,10 +18,19 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/views/index.html");
 });
 
+// Models
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true },
 });
 const User = mongoose.model("User", userSchema);
+
+const exerciseSchema = new mongoose.Schema({
+  userId: { type: String, required: true },
+  description: { type: String, required: true },
+  duration: { type: Number, required: true },
+  date: { type: Date, default: Date.now },
+});
+const Exercise = mongoose.model("Exercise", exerciseSchema);
 
 // Post new user
 app.post("/api/users", (req, res) => {
@@ -32,7 +41,7 @@ app.post("/api/users", (req, res) => {
   });
 });
 
-// Get all user
+// Get all users
 app.get("/api/users", (req, res) => {
   User.find().then((allUsers) => {
     res.json(allUsers);
@@ -40,6 +49,25 @@ app.get("/api/users", (req, res) => {
 });
 
 // Post new exercise
+app.post("/api/users/:_id/exercises", (req, res) => {
+  Exercise.create({
+    userId: req.body[":_id"],
+    description: req.body.description,
+    duration: req.body.duration,
+    date: req.body.date ? new Date(req.body.date) : new Date(),
+  }).then((data) => {
+    console.log(data);
+    User.findById(data.userId).then((foundUser) => {
+      return res.json({
+        _id: data.userId,
+        username: foundUser.username,
+        description: data.description,
+        duration: data.duration,
+        date: data.date.toDateString(),
+      });
+    });
+  });
+});
 
 // Get exercise logs
 
