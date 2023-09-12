@@ -50,21 +50,51 @@ app.get("/api/users", (req, res) => {
 
 // Post new exercise
 app.post("/api/users/:_id/exercises", (req, res) => {
-  Exercise.create({
-    userId: req.body[":_id"],
-    description: req.body.description,
-    duration: req.body.duration,
-    date: req.body.date ? new Date(req.body.date) : new Date(),
-  }).then((data) => {
-    console.log(data);
-    User.findById(data.userId).then((foundUser) => {
-      return res.json({
-        _id: data.userId,
-        username: foundUser.username,
-        description: data.description,
-        duration: data.duration,
-        date: data.date.toDateString(),
-      });
+  // Exercise.create({
+  //   userId: req.body[":_id"],
+  //   description: req.body.description,
+  //   duration: req.body.duration,
+  //   date: req.body.date ? new Date(req.body.date) : new Date(),
+  // }).then((data) => {
+  //   console.log(data);
+
+  //   User.findById(data.userId).then((foundUser) => {
+  //     return res.json({
+  //       _id: data.userId,
+  //       username: foundUser.username,
+  //       description: data.description,
+  //       duration: data.duration,
+  //       date: data.date.toDateString(),
+  //     });
+  //   });
+  // });
+
+  const date = req.body.date ? new Date(req.body.date) : new Date();
+  const duration = parseInt(req.body.duration);
+
+  if (!req.body[":_id"] || !req.body.description || !duration) {
+    return res.json({ error: "More info needed" });
+  }
+
+  if (date === "Invalid Date") return res.json({ error: "Invalid Date" });
+  if (isNaN(duration)) return res.json({ error: "Duration must be a integer" });
+
+  User.findById(req.body[":_id"]).then((foundUser) => {
+    if (!foundUser) return res.json({ error: "UserId not found" });
+
+    Exercise.create({
+      userId: foundUser._id,
+      description: req.body.description,
+      duration: req.body.duration,
+      date: date,
+    });
+
+    return res.json({
+      _id: foundUser._id,
+      username: foundUser.username,
+      description: req.body.description,
+      duration: duration,
+      date: date.toDateString(),
     });
   });
 });
