@@ -72,12 +72,12 @@ app.post("/api/users/:_id/exercises", (req, res) => {
   const date = req.body.date ? new Date(req.body.date) : new Date();
   const duration = parseInt(req.body.duration);
 
+  if (date == "Invalid Date") return res.json({ error: "Invalid Date" });
+  if (isNaN(duration)) return res.json({ error: "Duration must be a integer" });
+
   if (!req.body[":_id"] || !req.body.description || !duration) {
     return res.json({ error: "More info needed" });
   }
-
-  if (date === "Invalid Date") return res.json({ error: "Invalid Date" });
-  if (isNaN(duration)) return res.json({ error: "Duration must be a integer" });
 
   User.findById(req.body[":_id"]).then((foundUser) => {
     if (!foundUser) return res.json({ error: "UserId not found" });
@@ -101,22 +101,36 @@ app.post("/api/users/:_id/exercises", (req, res) => {
 
 // Get exercise logs
 app.get("/api/users/:_id/logs", (req, res) => {
-  console.log(req.params);
+  console.log(`req.body: ${JSON.stringify(req.body)}`);
+  console.log(`req.params: ${JSON.stringify(req.params)}`);
+  console.log(`req.query: ${JSON.stringify(req.query)}`);
 
-  User.findById(req.params._id).then((foundUser) => {
-    console.log({ foundUser });
+  User.findById(req.params._id)
+    .then((foundUser) => {
+      // console.log({ foundUser });
 
-    Exercise.find({ userId: req.params._id }).then((data) => {
-      console.log(data.length, { data });
+      if (!foundUser) return res.json({ error: "UserId not found" });
 
-      return res.json({
-        username: foundUser.username,
-        _id: foundUser._id,
-        count: data.length,
-        log: data,
-      });
-    });
-  });
+      Exercise.find({ userId: req.params._id })
+        .then((data) => {
+          // console.log(data.length, { data });
+
+          return res.json({
+            username: foundUser.username,
+            _id: foundUser._id,
+            count: data.length,
+            log: data.map((d) => {
+              return {
+                description: d.description,
+                duration: d.duration,
+                date: new Date(d.date).toDateString(),
+              };
+            }),
+          });
+        })
+        .catch((err) => console.log(err));
+    })
+    .catch((err) => console.log(err));
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
