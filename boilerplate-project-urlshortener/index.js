@@ -35,19 +35,14 @@ app.post("/api/shorturl", (req, res) => {
   } else {
     Url.findOne({ original: req.body.url })
       .then((found) => {
-        if (found) {
-          return res.json({
-            original_url: req.body.url,
-            short_url: found.short,
-          });
-        } else {
-          const count = shortID.generate();
-          new Url({ original: req.body.url, short: count }).save();
-          return res.json({
-            original_url: req.body.url,
-            short_url: count,
-          });
+        const short = found ? found.short : shortID.generate();
+        if (!found) {
+          new Url({ original: req.body.url, short: short }).save();
         }
+        return res.json({
+          original_url: req.body.url,
+          short_url: short,
+        });
       })
       .catch((err) => console.log(err));
   }
@@ -58,7 +53,7 @@ app.get("/api/shorturl/:short_url?", (req, res) => {
     if (found) {
       return res.redirect(found.original);
     } else {
-      return res.status(404).json("No URL found");
+      return res.status(404).json("Not Found");
     }
   });
 });
