@@ -77,23 +77,35 @@ app.post("/api/users/:_id/exercises", (req, res) => {
 
 // Get exercise logs
 app.get("/api/users/:_id/logs", (req, res) => {
+  const { from, to, limit } = req.query;
+
   User.findById(req.params._id)
     .then((foundUser) => {
       if (!foundUser) return res.json({ error: "UserId not found" });
 
       Exercise.find({ userId: req.params._id })
         .then((data) => {
+          let log = data.map((d) => {
+            return {
+              description: d.description,
+              duration: d.duration,
+              date: new Date(d.date).toDateString(),
+            };
+          });
+
+          if (from || to) {
+            log = log.filter((e) => e.date >= from || e.date <= to);
+          }
+
+          if (limit) {
+            log = log.splice(0, limit);
+          }
+
           return res.json({
             username: foundUser.username,
             _id: foundUser._id,
             count: data.length,
-            log: data.map((d) => {
-              return {
-                description: d.description,
-                duration: d.duration,
-                date: new Date(d.date).toDateString(),
-              };
-            }),
+            log: log,
           });
         })
         .catch((err) => console.log(err));
