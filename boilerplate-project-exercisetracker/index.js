@@ -73,66 +73,33 @@ app.post("/api/users/:_id/exercises", (req, res) => {
       date: obj.date.toDateString(),
     });
   });
-
-  // const date = req.body.date ? new Date(req.body.date) : new Date();
-  // const duration = parseInt(req.body.duration);
-  // console.log(req.body.description, req.body.duration, req.body.date);
-  // if (date == "Invalid Date") return res.json({ error: "Invalid Date" });
-  // if (isNaN(duration)) return res.json({ error: "Duration must be a integer" });
-  // if (!req.body[":_id"] || !req.body.description || !duration) {
-  //   return res.json({ error: "More info needed" });
-  // }
-  // User.findById(req.body[":_id"]).then((foundUser) => {
-  //   if (!foundUser) return res.json({ error: "UserId not found" });
-  //   Exercise.create({
-  //     userId: foundUser._id,
-  //     description: req.body.description,
-  //     duration: req.body.duration,
-  //     date: date,
-  //   });
-  //   return res.json({
-  //     _id: foundUser._id,
-  //     username: foundUser.username,
-  //     description: req.body.description,
-  //     duration: duration,
-  //     date: date.toDateString(),
-  //   });
-  // });
 });
 
 // Get exercise logs
-// app.get("/api/users/:_id/logs", (req, res) => {
-//   console.log(`req.body: ${JSON.stringify(req.body)}`);
-//   console.log(`req.params: ${JSON.stringify(req.params)}`);
-//   console.log(`req.query: ${JSON.stringify(req.query)}`);
+app.get("/api/users/:_id/logs", (req, res) => {
+  User.findById(req.params._id)
+    .then((foundUser) => {
+      if (!foundUser) return res.json({ error: "UserId not found" });
 
-//   User.findById(req.params._id)
-//     .then((foundUser) => {
-//       // console.log({ foundUser });
-
-//       if (!foundUser) return res.json({ error: "UserId not found" });
-
-//       Exercise.find({ userId: req.params._id })
-//         .then((data) => {
-//           // console.log(data.length, { data });
-
-//           return res.json({
-//             username: foundUser.username,
-//             _id: foundUser._id,
-//             count: data.length,
-//             log: data.map((d) => {
-//               return {
-//                 description: d.description,
-//                 duration: d.duration,
-//                 date: new Date(d.date).toDateString(),
-//               };
-//             }),
-//           });
-//         })
-//         .catch((err) => console.log(err));
-//     })
-//     .catch((err) => console.log(err));
-// });
+      Exercise.find({ userId: req.params._id })
+        .then((data) => {
+          return res.json({
+            username: foundUser.username,
+            _id: foundUser._id,
+            count: data.length,
+            log: data.map((d) => {
+              return {
+                description: d.description,
+                duration: d.duration,
+                date: new Date(d.date).toDateString(),
+              };
+            }),
+          });
+        })
+        .catch((err) => console.log(err));
+    })
+    .catch((err) => console.log(err));
+});
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
